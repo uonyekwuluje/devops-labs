@@ -1,0 +1,106 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgresdb
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-cm
+  namespace: postgresdb  
+  labels:
+    app: postgres
+data:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_HOST_AUTH_METHOD: trust
+  PGADMIN_DEFAULT_EMAIL: info@pgamin.io
+  PGADMIN_DEFAULT_PASSWORD: password123
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: postgresdb
+  labels:
+    app: pgadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+      - name: pgadmin
+        image: "dpage/pgadmin4"
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: postgres-cm
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+  namespace: postgresdb
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+        name: postgres-db
+  template:
+    metadata:
+      labels:
+        name: postgres-db
+    spec:
+      containers:
+        - name: postgres-db
+          image: postgres:14.2
+          envFrom:
+          - configMapRef:
+              name: postgres-cm 
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-svc
+  namespace: postgresdb
+  labels:
+    name: postgres-db
+spec:
+  ports:
+  - port: 5432
+  selector:
+    name: postgres-db
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-svc
+  namespace: postgresdb
+  labels:
+    app: pgadmin
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: pgadmin
