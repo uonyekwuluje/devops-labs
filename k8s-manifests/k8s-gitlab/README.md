@@ -15,3 +15,5 @@ Login to GitLab and verify it's there
 
 ## References
 * https://edenmal.moe/post/2017/GitLab-Kubernetes-Running-CI-Runners-in-Kubernetes
+* https://docs.gitlab.com/runner/executors/kubernetes.html
+* https://docs.gitlab.com/runner/install/kubernetes.html
