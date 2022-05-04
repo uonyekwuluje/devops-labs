@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: index-html-configmap
+  namespace: apache2
+data:
+  index.html: |
+    <html>
+    <h1>Welcome</h1>
+    </br>
+    <h1>Hi! This is a custom configmap Index file </h1>
+    </html
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache2-deployment
+  namespace: apache2
+spec:
+  selector:
+    matchLabels:
+      app: apache2
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: apache2
+    spec:
+      containers:
+      - name: apache2
+        image: httpd:2.4.48
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: apache2-index-file
+          mountPath: /usr/local/apache2/htdocs
+      volumes:
+      - name: apache2-index-file
+        configMap:
+          name: index-html-configmap
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+     app: apache2
+  name: apache2-service
+  namespace: apache2
+spec:
+  selector:
+    app: apache2
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 80
+    protocol: TCP

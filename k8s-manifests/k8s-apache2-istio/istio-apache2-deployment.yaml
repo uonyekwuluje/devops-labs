@@ -1,0 +1,34 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: apache2-gateway
+  namespace: apache2
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 8080
+      name: http
+      protocol: HTTP
+    hosts:
+    - "dev.apache2.com"
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: apache2-virtualservice
+  namespace: apache2
+spec:
+  hosts:
+  - "dev.apache2.com"
+  gateways:
+  - apache2-gateway
+  http:
+  - route:
+    - destination:
+        port:
+          number: 8080
+        host: apache2-service.apache2.svc.cluster.local      
