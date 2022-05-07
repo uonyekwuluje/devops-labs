@@ -18,7 +18,7 @@ spec:
     name: in-cluster
   project: default
   source:
-    path: k8s-manifests/k8s-nginx
+    path: k8s-manifests/k8s-nginx/
     repoURL: git@github.com:uonyekwuluje/devops-labs.git
     targetRevision: main
   syncPolicy:
