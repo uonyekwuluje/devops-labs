@@ -65,7 +65,7 @@ spec:
     spec:
       containers:
       - name: registry
-        image: registry:2.8
+        image: registry:2.8.1
         imagePullPolicy: IfNotPresent
         ports:
         - name: registry
@@ -74,12 +74,6 @@ spec:
         env:
         - name: REGISTRY_HTTP_ADDR
           value: 0.0.0.0:5000
-        - name: REGISTRY_AUTH
-          value: "htpasswd"
-        - name: REGISTRY_AUTH_HTPASSWD_REALM
-          value: "Registry Realm"
-        - name: REGISTRY_AUTH_HTPASSWD_PATH
-          value: /auth/htpasswd
         - name: REGISTRY_STORAGE_DELETE_ENABLED
           value: "true"
         volumeMounts:

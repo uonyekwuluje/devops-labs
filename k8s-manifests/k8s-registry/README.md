@@ -1,4 +1,13 @@
 # Deploy Docker Registry
+Create Registry Password
+```
+htpasswd -Bc registry.passwd admin
+cat registry.passwd | base64 -w0
+```
+Update the secrets with the base64 entry
+
+
+
 Create Deployment
 ```
 kubectl apply -f registry-deployment.yaml
