@@ -25,3 +25,24 @@ Install
 istioctl x precheck
 istioctl install
 ```
+
+## Install ArgoCD and ArgoCD CLI
+My K8s Reminder will be driven by ArgoCD
+```
+kubectl create namespace argo-cd
+VERSION="v2.3.3"
+kubectl apply -n argo-cd -f https://raw.githubusercontent.com/argoproj/argo-cd/$VERSION/manifests/install.yaml
+```
+
+ArgoCD CLI
+```
+VERSION="v2.3.3"
+wget https://github.com/argoproj/argo-cd/releases/download/$VERSION/argocd-linux-amd64
+chmod a+x argocd-linux-amd64
+sudo mv argocd-linux-amd64 /bin/argocd
+```
+
+## ArgoCD Apps
+```
+kubectl apply -f argo-apps/argo-nginx-deploy.yml
+```

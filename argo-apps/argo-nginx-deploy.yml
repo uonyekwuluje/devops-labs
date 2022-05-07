@@ -1,0 +1,31 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-services
+  namespace: argo-cd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: deployments
+    notifications.argoproj.io/subscribe.on-deployed.slack: deployments
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: deployments
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: deployments
+    notifications.argoproj.io/subscribe.on-sync-running.slack: deployments
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.slack: deployments
+spec:
+  destination:
+    name: in-cluster
+  project: default
+  source:
+    path: k8s-manifests/k8s-nginx
+    repoURL: git@github.com:uonyekwuluje/devops-labs.git
+    targetRevision: main
+  syncPolicy:
+    automated: 
+       prune: true
+       selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - Validate=true
+    - ApplyOutOfSyncOnly=true
