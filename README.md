@@ -10,7 +10,7 @@ List of custom docker images for select tools
 
 ## Kubernetes Cheat sheets
 List of K8s snippets, configs and manifests
-* [MySQL & NFS PV] (/k8s-manifests/k8s-storage/)
+* [MySQL & NFS PV](/k8s-manifests/k8s-storage)
 
 ## Install Istio
 Check `https://github.com/istio/istio` for the release of your choice. Also ensure you have kubernetes up and running
