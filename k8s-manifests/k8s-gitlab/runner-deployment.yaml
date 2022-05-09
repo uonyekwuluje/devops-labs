@@ -79,7 +79,7 @@ spec:
         runAsUser: 999
         supplementalGroups: [999]
       containers:
-      - image: gitlab/gitlab-runner:v12.6.0
+      - image: gitlab/gitlab-runner:v14.10.1
         name: gitlab-ci-runner
         command:
         - /scripts/run.sh
