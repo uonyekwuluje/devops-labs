@@ -28,7 +28,7 @@ spec:
   selector:
     matchLabels:
       app: nginx
-  replicas: 1
+  replicas: 4
   template:
     metadata:
       labels:
@@ -42,10 +42,45 @@ spec:
         volumeMounts:
         - name: nginx-index-file
           mountPath: /usr/share/nginx/html/
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "10m"
+          limits:
+            memory: "128Mi"
+            cpu: "10m" 
       volumes:
       - name: nginx-index-file
         configMap:
           name: index-html-configmap
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-demo
+  namespace: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: cpu-ctr
+        image: vish/stress
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: 500m
+        args:
+        - -cpus
+        - "2"
 
 
 ---

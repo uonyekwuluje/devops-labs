@@ -1,0 +1,113 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: japp-ns
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: registrypullsecret
+  namespace: japp-ns
+data:
+  .dockerconfigjson: ewoJImF1dGhzIjogewoJCSIxOTIuMTY4LjEuMjQzIjogewoJCQkiYXV0aCI6ICJZV1J0YVc0NmNHRnpjM2R2Y21RPSIKCQl9LAoJCSIxOTIuMTY4LjEuNzQiOiB7CgkJCSJhdXRoIjogIllXUnRhVzQ2Y0dGemMzZHZjbVE9IgoJCX0sCgkJIjE5Mi4xNjguMS45NTozMDUwMCI6IHsKCQkJImF1dGgiOiAiWVdSdGFXNDZjR0Z6YzNkdmNtUT0iCgkJfQoJfQp9
+type: kubernetes.io/dockerconfigjson
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: datasource-credentials
+  namespace: japp-ns
+type: Opaque
+data:
+  DB_PASSWORD: cm00Rnc3Qmkxd0lrczA=
+
+---
+apiVersion: v1 
+kind: ConfigMap 
+metadata:
+  name: spring-configmap
+  namespace: japp-ns 
+data:
+  DB_USERNAME: prdadmin
+  JDBC_URL: jdbc:postgresql://192.168.1.218:5432/products_db
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ubuntu
+  name: ubuntu
+  namespace: japp-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ubuntu
+    spec:
+      containers:
+      - image: ubuntu
+        name: ubuntu
+        envFrom:
+        - configMapRef:
+            name: spring-configmap
+        - secretRef:
+            name: datasource-credentials
+        command: ["/bin/sleep", "3650d"]
+        resources: {}
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: japp-deployment
+  namespace: japp-ns
+spec:
+  selector:
+    matchLabels:
+      app: japp
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: japp
+    spec:
+      containers:
+      - name: japplication
+        image: 192.168.1.74/prdt-api:v1.0.4
+        envFrom:
+        - configMapRef:
+            name: spring-configmap 
+        - secretRef:
+            name: datasource-credentials
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+      - name: registrypullsecret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+     app: japp
+  name: japp-service
+  namespace: japp-ns
+spec:
+  selector:
+    app: japp
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP

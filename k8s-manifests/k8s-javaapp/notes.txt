@@ -1,0 +1,55 @@
+
+spring.datasource.url=jdbc:postgresql://192.168.1.218:5432/products_db
+spring.datasource.username=prdadmin
+spring.datasource.password=rm4Fw7Bi1wIks0
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+--------------------
+spring.datasource.url=jdbc:postgresql://${POSTGRES_DATABASE_SERVER}:5432/${POSTGRES_DATABASE_NAME}
+spring.datasource.username=${POSTGRES_USERNAME}
+spring.datasource.password=${POSTGRES_PASSWORD}
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+
+
+echo "192.168.1.218" | base64      => MTkyLjE2OC4xLjIxOAo=
+echo "products_db" | base64        => cHJvZHVjdHNfZGIK
+echo "prdadmin" | base64           => cHJkYWRtaW4K
+echo "rm4Fw7Bi1wIks0" | base64     => cm00Rnc3Qmkxd0lrczAK
+
+JDBC_POSTGRES_URL
+
+
+kubectl -n japp-ns exec --stdin --tty ubuntu-78497c9f6c-ltxwx -- /bin/bash 
+
+
+echo "rm4Fw7Bi1wIks0" | base64
+cm00Rnc3Qmkxd0lrczAK
+echo rm4Fw7Bi1wIks0 | base64
+cm00Rnc3Qmkxd0lrczAK
+echo 'rm4Fw7Bi1wIks0' | base64
+cm00Rnc3Qmkxd0lrczAK
+
+
+kubectl create secret generic db-secret --from-literal=password=rm4Fw7Bi1wIks0
+>>
+secret/db-secret created
+
+
+kubectl get secrets db-secret -o yaml
+>>
+apiVersion: v1
+data:
+  password: cm00Rnc3Qmkxd0lrczA=
+kind: Secret
+metadata:
+  creationTimestamp: "2022-05-18T15:19:34Z"
+  name: db-secret
+  namespace: default
+  resourceVersion: "28999"
+  uid: 12d2dfa8-4e2a-4333-bcf4-a40a7ab31755
+type: Opaque
+
+
