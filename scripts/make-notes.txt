@@ -1,0 +1,7 @@
+# Pass Variables
+Makefile
+>>
+send:
+    echo $(MESSAGE1) $(MESSAGE2)
+
+Test => MESSAGE1=YES MESSAGE2=NG  make send MESSAGE2=OK
