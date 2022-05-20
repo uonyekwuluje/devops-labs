@@ -31,6 +31,8 @@ Update the manifest with the password
 kubectl apply -f nfs-mysql-deployment.yml
 OR
 kubectl apply -f glusterfs-mysql-deployment.yml
+OR
+kubectl delete -f local-mysql-deployment.yml
 
 # Connect
 kubectl exec -it svc/mysql-svc -n mysql -- mysql -ppassword
