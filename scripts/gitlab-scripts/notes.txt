@@ -1,0 +1,44 @@
+Links
+===============
+https://www.reddit.com/r/gitlab/comments/c9w0sm/delete_project_from_bash/
+https://docs.gitlab.com/ee/api/#how-to-use-the-api
+https://docs.gitlab.com/ee/api/projects.html
+
+
+# Get List of Projects
+========================
+curl -s "https://gitlab.com/api/v4/users/uonyekwuluje/projects?private_token=${GITLAB_TOKEN}" | jq .[].name 
+>>
+"newUche"
+"devops-sre-labs"
+"devops-sre-nuggets"
+"coding-labs"
+
+# Get Number of Pages
+=======================
+curl -s --head "https://gitlab.com/api/v4/users/uonyekwuluje/projects?private_token=${GITLAB_TOKEN}" | grep x-total-pages | awk '{print $2}' | tr -d '\r\n'
+>>
+1
+
+# Get Name & Value
+======================
+curl -s "https://gitlab.com/api/v4/users/uonyekwuluje/projects?private_token=${GITLAB_TOKEN}" | jq '.[] | "\(.name) \(.id)"'
+>>
+"newUche 36381053"
+"devops-sre-labs 35861044"
+"devops-sre-nuggets 20283728"
+"coding-labs 18971075"
+
+# Search for Project ID
+===========================
+curl -s -X GET https://gitlab.com/api/v4/projects?search=coding-labs \
+-H "PRIVATE-TOKEN: ${GITLAB_TOKEN}"  | jq .[0].id
+>>
+18971075
+
+
+# Delete Project
+=======================
+curl -v -s -X DELETE -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+"https://gitlab.com/api/v4/projects/36381053"
+
