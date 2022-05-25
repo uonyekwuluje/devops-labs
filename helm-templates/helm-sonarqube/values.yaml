@@ -1,0 +1,44 @@
+replicaCount: 1
+namespace: sonarqube
+
+postgresData:
+  labels: postgres
+  configMapName: postgres-cm
+  dbName: postgres
+  dbUser: postgres
+  dbPassword: postgres
+  statefulStateName: postgres-sts 
+  serviceName: postgres
+  replicas: 1
+  image: postgres
+  tag: 14
+  pullPolicy: IfNotPresent 
+  pvName: postgres-nfs-pv
+  pvSize: 5Gi
+  pvClaimName: postgres-nfs-pvc
+  pvClaimSize: 4Gi
+
+nfsData:
+  server: 192.168.1.57
+  postgresPath: /data/sonarqube/postgres
+  sonarqubeDataPath: /data/sonarqube/data
+  sonarqubeExtensionPath: /data/sonarqube/extensions
+
+sonarqubeData:
+  labels: sonarqube
+  pvDataName: sonarqube-data-nfs-pv
+  pvDataSize: 3Gi
+  pvDataClaimName: sonarqube-data-nfs-pvc
+  pvDataClaimSize: 3Gi
+  pvExtensionName: sonarqube-extension-nfs-pv
+  pvExtensionSize: 3Gi
+  pvExtensionClaimName: sonarqube-extension-nfs-pvc
+  pvExtensionClaimSize: 3Gi
+  postgresSecretName: sonarqube-postgres-secret
+  configMapName: sonarqube-cm
+  statefulsetName: sonarqube-sts
+  replicas: 1
+  serviceName: sonarqube
+  image: sonarqube
+  tag: 8.7.0-community
+  pullPolicy: IfNotPresent

@@ -1,0 +1,100 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Values.postgresData.configMapName }}"
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    app: "{{ .Values.postgresData.label }}"
+data:
+  POSTGRES_DB: "{{ .Values.postgresData.dbName }}"
+  POSTGRES_USER: "{{ .Values.postgresData.dbUser }}"
+  POSTGRES_PASSWORD: "{{ .Values.postgresData.dbPassword }}"
+  PGDATA: "/var/lib/postgresql/pgdata"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ .Values.postgresData.pvName }}"
+  labels:
+    storage: nfs
+spec:
+  capacity:
+    storage: "{{ .Values.postgresData.pvSize }}"
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  nfs:
+    path: "{{ .Values.nfsData.postgresPath }}"
+    server: "{{ .Values.nfsData.server }}"
+    readOnly: false
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.postgresData.pvClaimName }}"
+  namespace: "{{ .Values.namespace }}"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ .Values.postgresData.pvClaimSize }}"
+  storageClassName: ""
+  selector:
+    matchLabels:
+      storage: "nfs"
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .Values.namespace }}-{{ .Values.postgresData.statefulStateName }}"
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    app: "{{ .Values.postgresData.label }}"
+spec:
+  serviceName: "{{ .Values.postgresData.serviceName }}"
+  replicas: {{ .Values.postgresData.replicas }}
+  selector:
+    matchLabels:
+      app: "{{ .Values.postgresData.label }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.postgresData.label }}"
+    spec:
+      containers:
+      - name: postgresdb-server
+        image: "{{ .Values.postgresData.image }}:{{ .Values.postgresData.tag }}"
+        imagePullPolicy: "{{ .Values.postgresData.pullPolicy }}"
+        envFrom:
+        - configMapRef:
+            name: "{{ .Values.postgresData.configMapName }}"
+        ports:
+        - containerPort: 5432
+          name: postgresdb
+        volumeMounts:
+        - name: pv-data
+          mountPath: /var/lib/postgresql/data
+          readOnly: false
+      volumes:
+      - name: pv-data
+        persistentVolumeClaim:
+          claimName: "{{ .Values.postgresData.pvClaimName }}"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.postgresData.serviceName }}-svc"
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    app: "{{ .Values.postgresData.label }}"
+spec:
+  ports:
+   - port: 5432
+  selector:
+   app: "{{ .Values.postgresData.label }}"

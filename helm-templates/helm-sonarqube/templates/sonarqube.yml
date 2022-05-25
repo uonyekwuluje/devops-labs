@@ -1,0 +1,198 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ .Values.sonarqubeData.pvDataName }}"
+  labels:
+    storage: nfs
+spec:
+  capacity:
+    storage: "{{ .Values.sonarqubeData.pvDataSize }}"
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: "{{ .Values.nfsData.sonarqubeDataPath }}"
+    server: "{{ .Values.nfsData.server }}"
+    readOnly: false
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.sonarqubeData.pvDataClaimName }}"
+  namespace: "{{ .Values.namespace }}"
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: "{{ .Values.sonarqubeData.pvDataClaimSize }}"
+  storageClassName: ""
+  selector:
+    matchLabels:
+      storage: "nfs"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ .Values.sonarqubeData.pvExtensionName }}"
+  labels:
+    storage: nfs
+spec:
+  capacity:
+    storage: "{{ .Values.sonarqubeData.pvExtensionSize }}"
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: "{{ .Values.nfsData.sonarqubeExtensionPath }}"
+    server: "{{ .Values.nfsData.server }}"
+    readOnly: false
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.sonarqubeData.pvExtensionClaimName }}"
+  namespace: "{{ .Values.namespace }}"
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: "{{ .Values.sonarqubeData.pvExtensionClaimSize }}"
+  storageClassName: ""
+  selector:
+    matchLabels:
+      storage: "nfs"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{{ .Values.sonarqubeData.postgresSecretName }}"
+  namespace: "{{ .Values.namespace }}"
+type: Opaque
+data:
+  password: cGFzc3dvcmQxMjMK
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Values.sonarqubeData.configMapName }}"
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    app: "{{ .Values.sonarqubeData.label }}"
+data:
+  SONARQUBE_JDBC_URL: "jdbc:postgresql://postgres-svc.sonarqube.svc.cluster.local:5432/sonar_db"
+  SONARQUBE_JDBC_USERNAME: "sonaradmin"
+  JAVA_OPTS: "-Duser.timezone=America/New_York -Xmx2048m"
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: "{{ .Values.sonarqubeData.label }}"
+  name: "{{ .Values.sonarqubeData.statefulsetName }}"
+  namespace: "{{ .Values.namespace }}"
+spec:
+  serviceName: "{{ .Values.sonarqubeData.serviceName }}"
+  replicas: {{ .Values.sonarqubeData.replicas }}
+  selector:
+    matchLabels:
+      app: "{{ .Values.sonarqubeData.label }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.sonarqubeData.label }}"
+    spec:
+      terminationGracePeriodSeconds: 15
+      initContainers:
+      - name: fix-data-volume
+        image: busybox
+        command:
+        - sh
+        - -c
+        - chown -R 1000:1000 /opt/sonarqube/data
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: sonar-data
+          mountPath: /opt/sonarqube/data
+      - name: fix-extension-volume
+        image: busybox
+        command:
+        - sh
+        - -c
+        - chown -R 1000:1000 /opt/sonarqube/extensions
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: sonar-extensions
+          mountPath: /opt/sonarqube/extensions
+      containers:
+        - name: sonarqube-server
+          image: "{{ .Values.sonarqubeData.image }}:{{ .Values.sonarqubeData.tag }}"
+          imagePullPolicy: "{{ .Values.sonarqubeData.pullPolicy }}"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1024Mi
+            limits:
+              cpu: 8000m
+              memory: 2048Mi
+          volumeMounts:
+          - name: sonar-data 
+            mountPath: /opt/sonarqube/data/
+          - name: sonar-extensions
+            mountPath: /opt/sonarqube/extensions/
+          env:
+          - name: "SONARQUBE_JDBC_PASSWORD"
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.sonarqubeData.postgresSecretName }}"
+                key: password
+          envFrom:
+          - configMapRef:
+              name: "{{ .Values.sonarqubeData.configMapName }}"
+          ports:
+          - containerPort: 9000
+            protocol: TCP
+      initContainers:
+      - name: sonarqube-es-init
+        image: busybox
+        command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        securityContext:
+          privileged: true
+      volumes:
+      - name: sonar-data
+        persistentVolumeClaim:
+          claimName: "{{ .Values.sonarqubeData.pvDataClaimName }}"
+      - name: sonar-extensions
+        persistentVolumeClaim:
+          claimName: "{{ .Values.sonarqubeData.pvExtensionClaimName }}"
+          
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: "{{ .Values.sonarqubeData.label }}"
+  name: sonarqube-svc
+  namespace: "{{ .Values.namespace }}"
+spec:
+  ports:
+    - name: sonar
+      port: 80
+      protocol: TCP
+      targetPort: 9000
+      nodePort: 30036
+  selector:
+    app: "{{ .Values.sonarqubeData.label }}"
+  type: NodePort
