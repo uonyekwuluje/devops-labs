@@ -28,3 +28,27 @@ deployment.apps/registry-deployment   1/1     1            1           31s
 NAME                                             DESIRED   CURRENT   READY   AGE
 replicaset.apps/registry-deployment-5cbbf779f6   1         1         1       31s
 ```
+
+### Login
+Before logging in, update your docker config `/etc/docker/daemon.json` and set this address as an insecure registry
+```
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "insecure-registries": [
+        "registry.multienvlabs.com:30036"
+  ],
+  "storage-driver": "overlay2",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true"
+  ]
+}
+```
+
+Login to docker
+```
+docker login registry.multienvlabs.com:30036 -u admin -p password
+```
