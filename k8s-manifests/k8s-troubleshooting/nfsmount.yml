@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nfstest
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv
+  labels:
+    name: webnfs
+spec:
+  storageClassName: nfs-manual # same storage class as pvc
+  capacity:
+    storage: 100Mi
+  accessModes:
+  - ReadWriteMany # pvc must match
+  nfs:
+    server: 192.168.1.81 # ip addres of nfs server
+    path: "/data/webapp" # path to exported directory (:)
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+  namespace: nfstest
+spec:
+  storageClassName: nfs-manual
+  accessModes:
+  - ReadWriteMany #  must be the same as PersistentVolume
+  resources:
+    requests:
+      storage: 50Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-deployment
+  namespace: nfstest
+spec:
+  selector:
+    matchLabels:
+      app: ubuntu
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ubuntu
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:18.04
+        command: ["/bin/sleep", "3650d"]
+        resources: {}
+        volumeMounts:
+        - name: nfs-webvolume
+          mountPath: /var/webdev01/
+      volumes:
+      - name: nfs-webvolume
+        persistentVolumeClaim:
+          claimName: nfs-pvc # name of pvc
