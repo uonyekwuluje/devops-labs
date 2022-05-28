@@ -1,0 +1,41 @@
+---
+version: '3.8'
+
+services:
+  redis:
+    container_name: redis-server
+    hostname: redis-server
+    image: library/redis:6.0.8-alpine
+    restart: always
+    ports:
+    - "6379:6379"
+    volumes: 
+    - redisdb:/data:rw
+    healthcheck:
+      test: redis-cli ping
+      interval: 3s
+      timeout: 5s
+      retries: 5
+    networks:
+    - backend
+   
+
+  insight:
+    container_name: redis-insight
+    hostname: redis-insight
+    image: redislabs/redisinsight:1.12.0
+    depends_on:
+    - redis
+    ports:
+    - "8001:8001"
+    networks:
+    - backend
+
+
+volumes:
+  redisdb:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
