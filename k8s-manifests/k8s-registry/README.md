@@ -1,4 +1,7 @@
-# Deploy Docker Registry
+# Registry 
+Docker Registry Hub. [Docker Registry](https://hub.docker.com/_/registry?tab=tags&page=1&name=3.)
+
+### Deploy Docker Registry
 Create Registry Password
 ```
 htpasswd -Bc registry.passwd admin
@@ -39,7 +42,7 @@ Before logging in, update your docker config `/etc/docker/daemon.json` and set t
     "max-size": "100m"
   },
   "insecure-registries": [
-        "registry.multienvlabs.com:30036"
+        "registry.multienvlabs.com:32000"
   ],
   "storage-driver": "overlay2",
   "storage-opts": [
@@ -50,5 +53,5 @@ Before logging in, update your docker config `/etc/docker/daemon.json` and set t
 
 Login to docker
 ```
-docker login registry.multienvlabs.com:30036 -u admin -p password
+docker login registry.multienvlabs.com:32000 -u admin -p password
 ```

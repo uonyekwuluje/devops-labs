@@ -116,3 +116,40 @@ spec:
     targetPort: 5000
     nodePort: 32000
     protocol: TCP
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  annotations: {}
+  name: registry-gateway
+  namespace: docker-registry
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 32000 
+      name: http
+      protocol: HTTP
+    hosts:
+    - "registry.multienvlabs.com"
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  annotations: {}
+  name: registry-virtualservice
+  namespace: docker-registry
+spec:
+  hosts:
+  - "registry.multienvlabs.com"
+  gateways:
+  - registry-gateway
+  http:
+  - route:
+    - destination:
+        host: registry-service.docker-registry.svc.cluster.local
+        port:
+          number: 5000
