@@ -7,9 +7,9 @@ metadata:
   labels:
     app: postgres
 data:
-  POSTGRES_DB: sonar
-  POSTGRES_USER: admin
-  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: sonardb
+  POSTGRES_USER: sadmin
+  POSTGRES_PASSWORD: securepassword
 
 ---
 apiVersion: v1
@@ -20,7 +20,7 @@ spec:
   capacity:
     storage: 20Gi
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteMany
   persistentVolumeReclaimPolicy: Delete
   storageClassName: local-storage
   hostPath:
@@ -33,7 +33,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - prod-kube-node02
+          - ub18-kube-node02
 
 ---
 kind: PersistentVolumeClaim
@@ -43,7 +43,7 @@ metadata:
   namespace: sonarqube
 spec:
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteMany
   storageClassName: local-storage
   resources:
     requests:
@@ -68,16 +68,16 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:10.1
+          image: postgres:14.2
           imagePullPolicy: "IfNotPresent"
           ports:
-            - containerPort: 5432
+          - containerPort: 5432
           envFrom:
-            - configMapRef:
-                name: postgres-config
+          - configMapRef:
+              name: postgres-config
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgredb
+          - mountPath: /var/lib/postgresql/data
+            name: postgredb
       volumes:
         - name: postgredb
           persistentVolumeClaim:

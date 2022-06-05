@@ -1,17 +1,31 @@
 # Create SonarQube Stack
-This stack includes 
-* NFS Volume
-* K8s Postgres
-
-## Create Backend Stack
+Create Folders on Worker Node
 ```
-# Create backend
+mkdir -p /data/sonarqube/{data,extensions,postgres}
+mkdir -p /data/sonarqube/extensions/plugins
+chmod 777 /data/sonarqube/
+```
+
+## Images
+Postgres: https://hub.docker.com/_/postgres
+Sonarqube: https://hub.docker.com/_/sonarqube
+
+## Create Base64 Password
+```
+echo -n 'securepassword' | base64
+>>
+c2VjdXJlcGFzc3dvcmQ=
+```
+
+
+## Create Backend Stack 
+```
+# Create Backend
 make build_backend
 
 # Connect to Postgres
-KUBECONFIG=~/.kube/prod-kube kubectl -n sonarqube exec --stdin --tty svc/postgres -- bash
-
-root@postgres-6f77dd46c8-82fkw:/# psql -U postgres
+KUBECONFIG=~/.kube/work-kube kubectl -n sonarqube exec --stdin --tty svc/postgres-svc -- bash
+psql -U postgres
 psql (10.1)
 Type "help" for help.
 
@@ -33,5 +47,18 @@ postgres=# \q
 make destroy_backend
 ```
 
+## Create Sonarqube
+```
+# Create Sonarqube
+make build_sonarqube
 
-http://192.168.1.31:30036/about
+# Connect
+KUBECONFIG=~/.kube/work-kube kubectl -n sonarqube exec --stdin --tty svc/sonarqube-svc -- bash
+
+http://192.168.1.22:30036/
+```
+
+
+## Plugins
+* [Multi Branch Plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin)
+
