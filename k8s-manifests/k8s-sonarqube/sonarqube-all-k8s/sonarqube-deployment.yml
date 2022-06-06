@@ -85,6 +85,48 @@ type: Opaque
 data:
   password: c2VjdXJlcGFzc3dvcmQ=
 
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sonarqube-cm
+  namespace: sonarqube
+  labels:
+    app: sonarqube
+data:
+  SONARQUBE_JDBC_URL: "jdbc:postgresql://postgres-svc.sonarqube.svc.cluster.local:5432/sonardb"
+  SONARQUBE_JDBC_USERNAME: "sadmin"
+  JAVA_OPTS: "-Duser.timezone=America/New_York -Xmx2048m"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sonar-cm-properties
+  namespace: sonarqube
+  labels:
+    app: sonarqube
+data:
+  sonar.properties: |
+     sonar.jdbc.maxActive=60
+     sonar.jdbc.maxIdle=5
+     sonar.jdbc.minIdle=2
+     sonar.jdbc.maxWait=5000
+     sonar.jdbc.minEvictableIdleTimeMillis=600000
+     sonar.jdbc.timeBetweenEvictionRunsMillis=30000
+     sonar.jdbc.removeAbandoned=true
+     sonar.jdbc.removeAbandonedTimeout=60
+     sonar.web.javaOpts=-server -Xms512m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError
+     sonar.search.javaOpts=-server -Xms512m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError
+     sonar.ce.javaOpts=-server -Xms512m -Xmx512m -XX:+HeapDumpOnOutOfMemoryError
+     sonar.path.data=/tmp
+     sonar.path.temp=/tmp
+     sonar.web.accessLogs.enable=true
+     sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.9.0.jar=web
+     sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.9.0.jar=ce
+
+
 ---
 apiVersion: apps/v1 
 kind: Deployment
@@ -104,6 +146,16 @@ spec:
         app: sonarqube
     spec:
       initContainers:
+      - name: sonarqube-branch-plugin
+        image: busybox:1.28
+        command:
+        - wget
+        - "-O"
+        - "/plugin-download-dirDownload/sonarqube-community-branch-plugin-1.9.0.jar"
+        - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/1.9.0/sonarqube-community-branch-plugin-1.9.0.jar
+        volumeMounts:
+        - name: plugin-download-dir
+          mountPath: "/plugin-download-dirDownload"
       - name: init
         image: busybox
         command:
@@ -118,20 +170,22 @@ spec:
           runAsNonRoot: False
       containers:
       - name: sonarqube
-        #image: sonarqube:9.0-community
-        image: sonarqube:9.1.0-community
-        #image: sonarqube:7.1
+        image: sonarqube:9.0-community
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: "/opt/sonarqube/data/"
           name: sonar-data
         - mountPath: "/opt/sonarqube/extensions/"
           name: sonar-extensions
+        - mountPath: "/opt/sonarqube/extensions/downloads/"
+          name: plugin-download-dir
+        - mountPath: "/opt/sonarqube/conf/sonar.properties"
+          name: sonar-properties
+          subPath: sonar.properties
+        envFrom:
+        - configMapRef:
+            name: sonarqube-cm
         env:
-        - name: "SONARQUBE_JDBC_USERNAME"
-          value: "sadmin"
-        - name: "SONARQUBE_JDBC_URL"
-          value: "jdbc:postgresql://postgres-svc.sonarqube.svc.cluster.local:5432/sonardb"
         - name: "SONARQUBE_JDBC_PASSWORD"
           valueFrom:
             secretKeyRef:
@@ -141,6 +195,11 @@ spec:
         - containerPort: 9000
           protocol: TCP
       volumes:
+      - name: sonar-properties
+        configMap:
+           name: sonar-cm-properties
+      - name: plugin-download-dir
+        emptyDir: {}
       - name: sonar-data
         persistentVolumeClaim:
           claimName: sonarqube-data-pvc

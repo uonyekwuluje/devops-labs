@@ -31,4 +31,3 @@ destroy_all:
 	@KUBECONFIG=$(KUBECONFIG) kubectl delete -f volume-deployment.yml
 	@KUBECONFIG=$(KUBECONFIG) kubectl delete -f namespace.yml
 	ssh ubuntu@192.168.1.23 sudo rm -Rf /data/sonarqube/
-	@KUBECONFIG=$(KUBECONFIG) kubectl delete pv local-data-storage-pv local-extension-storage-pv
