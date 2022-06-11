@@ -1,0 +1,14 @@
+[Unit]
+Requires=network.target remote-fs.target zookeeper.service
+After=network.target remote-fs.target zookeeper.service
+
+[Service]
+Type=simple
+User=kafka
+ExecStart=/opt/kafka/bin/kafka-server-start /opt/kafka/etc/kafka/server.properties
+ExecStop=/opt/kafka/bin/kafka-server-stop
+TimeoutSec=30
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

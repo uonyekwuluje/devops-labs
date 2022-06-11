@@ -1,0 +1,39 @@
+---
+- name: Configure Hosts File
+  hosts: kafkanodes
+  gather_facts: true
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+  - name: Update the /etc/hosts file with node name
+    become: yes
+    become_user: root
+    lineinfile:
+        path: "/etc/hosts"
+        regexp: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}\t{{ hostvars[item]['inventory_hostname']}}"
+        line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}\t{{ hostvars[item]['inventory_hostname']}}"
+        state: present
+        backup: yes
+    register: etchostsupdate
+    when: ansible_hostname != item or ansible_hostname == item
+    with_items: "{{groups['kafkanodes']}}"
+
+- name: Configure Kafka Nodes
+  hosts: kafkanodes
+  gather_facts: true
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+  - role: common
+    when: >
+      ansible_distribution == 'CentOS' and (ansible_distribution_version == '6.4' or ansible_distribution_version == '7.7') or 
+      ansible_distribution == 'Ubuntu' and (ansible_distribution_version == '18.04' or ansible_distribution_version == '20.04') or
+      ansible_distribution == 'Fedora' and (ansible_distribution_version == '34' or ansible_distribution_version == '35')
+
+  - role: kafka
+    when: >
+      ansible_distribution == 'CentOS' and (ansible_distribution_version == '6.4' or ansible_distribution_version == '7.7') or
+      ansible_distribution == 'Ubuntu' and (ansible_distribution_version == '18.04' or ansible_distribution_version == '20.04') or
+      ansible_distribution == 'Fedora' and (ansible_distribution_version == '34' or ansible_distribution_version == '35')

@@ -1,0 +1,18 @@
+---
+kafka_cluster: ["kafka-node01", "kafka-node02", "kafka-node03"]
+zookeeper_servers: "kafka-node01:2181,kafka-node02:2181,kafka-node03:2181"
+
+kafka_user:
+- username: kafka
+  user_group: kafka
+  gekos: "Kafka User"
+  user_home: "/home/kafka"
+  user_shell: "/bin/bash"
+  use_sudo: true
+
+kafka_major_version: "7.1"
+kafka_minor_version: "7.1.1"
+kafka_file: "confluent-{{ kafka_minor_version }}.tar.gz"
+kafka_url: "http://packages.confluent.io/archive/{{ kafka_major_version }}/{{ kafka_file }}"
+kafka_extract_folder: "/opt/kafka"
+zookeeper_id_folder: "/var/lib/zookeeper"

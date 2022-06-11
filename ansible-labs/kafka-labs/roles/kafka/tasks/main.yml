@@ -1,0 +1,97 @@
+---
+- name: Create | Zookeeper Path
+  file:
+      path: "{{ zookeeper_id_folder }}"
+      state: "directory"
+      owner: "{{ item.username }}"
+      group: "{{ item.user_group }}"
+      mode: "0755"
+  with_items: "{{kafka_user}}"
+  become: true
+
+- name: Update | Update brooker id
+  template:
+    src: "myid.j2"
+    dest: "{{ zookeeper_id_folder }}/myid"
+    owner: "{{ item.username }}"
+    group: "{{ item.user_group }}"
+    mode: "0644"
+  with_items: "{{kafka_user}}"
+  become: true
+
+- name: Check | Check if kafka folder already exists.
+  stat:
+    path: "{{ kafka_extract_folder }}"
+  register: kafka_result
+
+- name: Create | Kafka Download Folders
+  file:
+     path: "{{ kafka_extract_folder }}"
+     state: "directory"
+     mode: 0755
+     owner: "{{ item.username }}"
+     group: "{{ item.user_group }}"
+  with_items: "{{kafka_user}}"
+  become: true
+  when: not kafka_result.stat.exists
+
+- name: Download | Download Kafka
+  unarchive:
+    src: "{{ kafka_url }}"
+    dest: "{{ kafka_extract_folder }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+    owner: "{{ item.username }}"
+    group: "{{ item.user_group }}"
+  with_items: "{{kafka_user}}"
+  become: True
+
+- name: Copy | Kafka & Zookeeper Services
+  copy:
+    src: "{{ item.services }}"
+    dest: "/lib/systemd/system"
+    mode: "{{ item.perm }}"
+  become: true
+  with_items:
+    - { services: "zookeeper.service", perm: "0640" }
+    - { services: "kafka.service", perm: "0640" }
+
+- name: Copy | zookeeper.properties
+  template:
+    src: "zookeeper.properties.j2"
+    dest: "{{ kafka_extract_folder }}/etc/kafka/zookeeper.properties"
+    mode: 0644
+    owner: "{{ item.username }}"
+    group: "{{ item.user_group }}"
+  with_items: "{{kafka_user}}"
+  become: True
+
+- name: Copy | server.properties
+  template:
+    src: "server.properties.j2"
+    dest: "{{ kafka_extract_folder }}/etc/kafka/server.properties"
+    mode: 0644
+    owner: "{{ item.username }}"
+    group: "{{ item.user_group }}"
+  with_items: "{{kafka_user}}"
+  become: True
+
+- name: Service | Enable Kafka & Zookeeper Services
+  systemd:
+    name: "{{ item.services }}"
+    enabled: yes
+    state: restarted
+  become: true
+  with_items:
+    - { services: "zookeeper" }
+    - { services: "kafka" }
+
+
+- name: Update Environment Variables
+  blockinfile:
+    path: /etc/profile
+    block: |
+       export PATH=$PATH:/opt/kafka/bin/
+       export KAFKA_HEAP_OPTS="-Xms512m -Xmx1g"
+       export KAFKA_OPTS=-Djavax.net.debug=all
+  become: true

@@ -1,0 +1,51 @@
+---
+# Provision Users
+- import_tasks: rhel_requirements.yml
+  when:
+  - ansible_distribution == 'CentOS'
+
+- import_tasks: debian_requirements.yml
+  when:
+  - ansible_os_family == 'Debian'
+
+- import_tasks: fedora_requirements.yml
+  when:
+  - ansible_distribution == 'Fedora'
+
+
+- name: Update hostname to myserver
+  hostname:
+    name: "{{ inventory_hostname | lower }}"
+
+- name: Create Kafka Home
+  file:
+      path: "{{ item.user_home }}"
+      state: directory
+  with_items: '{{kafka_user}}'
+
+- name: Create Kafka user, shell, home dirs
+  user:
+     name: "{{ item.username }}"
+     shell: "{{ item.user_shell }}"
+     comment: "{{ item.gekos }}" 
+     home: "{{ item.user_home }}"
+  with_items: '{{kafka_user}}'
+
+
+- name: Update Kafka Home Permissions
+  file:
+      path: "{{ item.user_home }}"
+      recurse: yes
+      owner: "{{ item.username }}"
+      group: "{{ item.user_group }}"
+      mode: "0755"
+  with_items: "{{kafka_user}}"
+
+- name: Update sudoers file and validate
+  lineinfile: 
+      destfile: /etc/sudoers
+      insertafter: EOF
+      line: '{{ item.username }} ALL=(ALL) NOPASSWD: ALL'
+      regexp: '^{{ item.username }} .*'
+      state: present
+  with_items: "{{kafka_user}}"
