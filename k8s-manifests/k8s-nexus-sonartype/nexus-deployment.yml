@@ -1,0 +1,108 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexus3-sonartype
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: Immediate
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nexus3-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  hostPath:
+    path: /data/nexus
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - kube-node-02
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nexus3-pvc
+  namespace: nexus3-sonartype
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 3Gi
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  labels:
+    app: nexus3-server
+  name: nexus3-deployment
+  namespace: nexus3-sonartype
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus3-server
+  template:
+    metadata:
+      labels:
+        app: nexus3-server
+    spec:
+      containers:
+      - name: nexus3-sonartype
+        image: sonatype/nexus3:3.38.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: "/nexus-data"
+          name: nexus-data
+          subPath: sonatype
+        ports:
+        - containerPort: 8081
+          protocol: TCP
+      volumes:
+      - name: nexus-data
+        persistentVolumeClaim:
+          claimName: nexus3-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nexus3-server 
+  name: nexus3-svc
+  namespace: nexus3-sonartype
+spec:
+  ports:
+  - name: nexus3
+    port: 8081
+    targetPort: 8081
+    nodePort: 32000
+  - name: registry
+    port: 5000
+    targetPort: 5000 
+    nodePort: 32001
+
+  selector:
+    app: nexus3-server
+  type: NodePort
