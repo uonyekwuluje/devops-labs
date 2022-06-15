@@ -1,0 +1,42 @@
+---
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14.2
+    hostname: postgres
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+       POSTGRES_USER: "postgres"
+       POSTGRES_PASSWORD: "postgres"
+       POSTGRES_DB: "ptest_db"
+    ports:
+    - 54320:5432
+    volumes: 
+    - db:/var/lib/postgresql/data
+    networks:
+    - pgnetwork
+
+  pgadmin:
+    container_name: pgadmin
+    hostname: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "password"
+      PGADMIN_CONFIG_SERVER_MODE: "False"	
+    ports:
+    - 5050:80
+    networks:
+    - pgnetwork
+
+
+networks:
+  pgnetwork:
+    driver: bridge
+
+volumes:
+  db:
+    driver: local
