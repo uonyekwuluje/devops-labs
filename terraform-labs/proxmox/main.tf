@@ -3,7 +3,7 @@ resource "proxmox_vm_qemu" "prometheus" {
     
     target_node = var.proxmox_host
     clone = var.template_name
-    
+
     agent = 1
     os_type = "cloud-init"
     cores = 1
@@ -15,7 +15,7 @@ resource "proxmox_vm_qemu" "prometheus" {
     
     disk {
       slot = 0
-      size = "32G"
+      size = "20G"
       type = "scsi"
       storage = "vm_storage_01"
       iothread = 1
@@ -26,9 +26,17 @@ resource "proxmox_vm_qemu" "prometheus" {
       bridge = "vmbr0"
     }
 
+    lifecycle {
+       ignore_changes = [
+          network
+       ]
+    }
+
     ipconfig0 = "ip=dhcp"
     ciuser = var.username
     cipassword = var.password
+    cicustom = "vendor=local:snippets/cloud_init_redhat.yml"
+    ssh_user = var.username
     sshkeys = <<EOF
     ${var.ssh_key}
     EOF

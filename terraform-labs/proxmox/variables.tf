@@ -1,5 +1,5 @@
 variable "ssh_key" {
-  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC18Yv8qFdV8+uo5c3EHFx8/fqm/LO9FZ9BG0v8pEKOfFSBeiivnwjQyG4CJq9v6UZBRzF7BypyzeTLtW8X61aHR+y0pRlIepy5rhFLmGZ4g9KxQUIYhUcAzMSISBYJtaBAOaj/7+gUZJzosE/R0wmzxcgC2Js0NU0zrOsgt505PsWSctd5ugAkQk/XHiNovj+CUNPORf4laxD8sHXkbkVm05x1dwzrbLxdeChabJV599Bbn4q3EzJoo+AgpV8YYOoDX5YuAhzzpBpxNs0cbHuNG14NldLoeBSK8XKhI1q4mpZNRO4YKvabkqWzY0T/lEWz8bDhNAqE06hB7mZ3mYJv terraform-infra"
+  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDFRUNQTiSWreSYQL2qD7wUSPt6rP7g0S1SOMInljoPZ7rNECnUwc4+ye2MjTpwi/U9673lfBRXaxmySgh3H9NtJe32dr20BHYPh3sqNW5+lDXBenIsAz5DEtNZBZao854GVOtYN5wd0TUulbwWwy0+BUsZpLbOZv1W/Ju0TsgDUnhxPEtgKvXYgXYiGn5VziU0WyW/BmjD3uTQuFe06UxEyEQr0KSg/D/NB0cI0XluIVeOj5ZJzjzAM1S36GRdBZn7sqt0YSFdLoQ8g6nisHbGcbIshW9MzI+PSb/d2YxU1lD/rBx8A/Fvjg25E4ccnPzsOMnkSJDbYTKL62KNPK81 terraform-infra"
 }
   
 variable "proxmox_host" {
@@ -7,7 +7,7 @@ variable "proxmox_host" {
 }
   
 variable "template_name" {
-  default = "centos7-template"
+  default = "amalinux8-template"
 }
 
 variable "username" {
