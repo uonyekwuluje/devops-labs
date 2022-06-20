@@ -15,7 +15,7 @@ resource "proxmox_vm_qemu" "prometheus" {
     
     disk {
       slot = 0
-      size = "20G"
+      size = "25G"
       type = "scsi"
       storage = "vm_storage_01"
       iothread = 1
@@ -32,6 +32,7 @@ resource "proxmox_vm_qemu" "prometheus" {
        ]
     }
 
+    cloudinit_cdrom_storage = "vm_storage_01"
     ipconfig0 = "ip=dhcp"
     ciuser = var.username
     cipassword = var.password
