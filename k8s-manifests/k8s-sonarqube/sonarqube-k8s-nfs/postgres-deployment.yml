@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: sonarqube
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: sonardb
+  POSTGRES_USER: sadmin
+  POSTGRES_PASSWORD: securepassword
+  PGDATA: /var/lib/postgresql/data/pgdata
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: sonarqube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:14.2
+          imagePullPolicy: "IfNotPresent"
+          ports:
+          - containerPort: 5432
+          envFrom:
+          - configMapRef:
+              name: postgres-config
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: postgredb-nfs
+            readOnly: false
+      volumes:
+      - name: postgredb-nfs
+        nfs:
+          server: 192.168.1.24
+          path: /data/sonarqube/postgres
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-svc
+  namespace: sonarqube
+  labels:
+    app: postgres
+spec:
+  ports:
+   - port: 5432
+  selector:
+   app: postgres
