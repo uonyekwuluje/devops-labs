@@ -11,6 +11,7 @@ data:
   POSTGRES_USER: sadmin
   POSTGRES_PASSWORD: securepassword
   PGDATA: /var/lib/postgresql/data/pgdata
+  POSTGRES_HOST_AUTH_METHOD: trust
 
 ---
 apiVersion: apps/v1

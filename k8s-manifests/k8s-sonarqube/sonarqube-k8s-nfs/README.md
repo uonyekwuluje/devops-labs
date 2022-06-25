@@ -43,7 +43,7 @@ make build_backend
 
 # Connect to Postgres
 KUBECONFIG=~/.kube/work-kube kubectl -n sonarqube exec --stdin --tty svc/postgres-svc -- bash
-psql -U postgres
+psql -h localhost -U sadmin --password -p 5432 sonardb
 psql (10.1)
 Type "help" for help.
 
