@@ -7,11 +7,47 @@ metadata:
   labels:
     app: postgres
 data:
-  POSTGRES_DB: sonardb
-  POSTGRES_USER: sadmin
-  POSTGRES_PASSWORD: securepassword
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
   PGDATA: /var/lib/postgresql/data/pgdata
   POSTGRES_HOST_AUTH_METHOD: trust
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarqube-nfs-pv
+  labels:
+    storage: nfs 
+spec:
+  capacity:
+    storage: 4Gi
+  accessModes:
+  - ReadWriteMany 
+  persistentVolumeReclaimPolicy: Recycle
+  nfs: 
+    path: /data/sonarqube/postgres 
+    server: 192.168.1.24
+    readOnly: false
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarqube-nfs-claim
+  namespace: sonarqube
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: ""
+  selector:
+    matchLabels:
+      storage: "nfs"
+
 
 ---
 apiVersion: apps/v1
@@ -31,8 +67,15 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:14.2
+          image: postgres:14
           imagePullPolicy: "IfNotPresent"
+          resources: 
+            requests:
+              cpu: 500m
+              memory: 1024Mi
+            limits:
+              cpu: 2000m
+              memory: 2048Mi
           ports:
           - containerPort: 5432
           envFrom:
@@ -41,12 +84,10 @@ spec:
           volumeMounts:
           - mountPath: /var/lib/postgresql/data
             name: postgredb-nfs
-            readOnly: false
       volumes:
       - name: postgredb-nfs
-        nfs:
-          server: 192.168.1.24
-          path: /data/sonarqube/postgres
+        persistentVolumeClaim:
+          claimName: sonarqube-nfs-claim
 
 ---
 apiVersion: v1

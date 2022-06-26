@@ -42,8 +42,15 @@ c2VjdXJlcGFzc3dvcmQ=
 make build_backend
 
 # Connect to Postgres
-KUBECONFIG=~/.kube/work-kube kubectl -n sonarqube exec --stdin --tty svc/postgres-svc -- bash
-psql -h localhost -U sadmin --password -p 5432 sonardb
+kubectl -n sonarqube exec --stdin --tty svc/postgres-svc -- bash
+psql -h localhost -U postgres -p 5432 -d postgres postgres
+
+CREATE DATABASE sonardb;
+CREATE USER sadmin WITH PASSWORD 'securepassword';
+GRANT ALL PRIVILEGES ON DATABASE sonardb TO sadmin;
+
+export PGPASSWORD="securepassword"
+psql -h localhost -U sadmin -p 5432 -d sonardb
 psql (10.1)
 Type "help" for help.
 
@@ -71,7 +78,7 @@ make destroy_backend
 make build_sonarqube
 
 # Connect
-KUBECONFIG=~/.kube/work-kube kubectl -n sonarqube exec --stdin --tty svc/sonarqube-svc -- bash
+kubectl -n sonarqube exec --stdin --tty svc/sonarqube-svc -- bash
 
 http://192.168.1.22:30036/
 ```

@@ -75,7 +75,13 @@ spec:
         ports:
         - containerPort: 9000
           protocol: TCP
-        resources: {}
+#        resources: 
+#          requests:
+#            cpu: 500m
+#            memory: 1024Mi
+#          limits:
+#            cpu: 2000m
+#            memory: 2048Mi
         lifecycle:
           postStart:
              exec:
@@ -98,6 +104,23 @@ spec:
                   sonar.web.accessLogs.enable=true
                   sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.9.0.jar=web
                   sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.9.0.jar=ce
+                  sonar.log.level=DEBUG
+
+                  # LDAP configuration
+                  sonar.security.realm=LDAP
+                  ldap.url=ldap://ldap.ucheonyekwuluje.com
+                  ldap.bindDn=cn=admin,dc=ucheonyekwuluje,dc=com
+                  ldap.bindPassword=password
+
+                  # User Configuration
+                  ldap.user.baseDn=ou=people,dc=ucheonyekwuluje,dc=com
+                  ldap.user.request=(&(objectClass=inetOrgPerson)(uid={login})) 
+                  ldap.user.realNameAttribute=cn
+                  ldap.user.emailAttribute=mail
+
+                  # Group Configuration
+                  ldap.group.baseDn=ou=groups,dc=ucheonyekwuluje,dc=com
+                  ldap.group.request=(&(objectClass=groupOfUniqueNames)(uniqueMember={dn}))
                   EOF'       
       volumes:
       - name: sonar-data-nfs
