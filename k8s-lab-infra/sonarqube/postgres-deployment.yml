@@ -7,9 +7,9 @@ metadata:
   labels:
     app: postgres
 data:
-  POSTGRES_DB: postgres
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: sonardb
+  POSTGRES_USER: sadmin
+  POSTGRES_PASSWORD: sadminpassword
 
 ---
 apiVersion: apps/v1
