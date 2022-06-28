@@ -9,6 +9,13 @@ kubectl apply -n argo-cd -f https://raw.githubusercontent.com/argoproj/argo-cd/$
 kubectl delete -n argo-cd -f https://raw.githubusercontent.com/argoproj/argo-cd/$VERSION/manifests/install.yaml
 ```
 
+## ArgoCD App
+```
+https://192.168.1.21:30934
+username: admin
+password: password
+```
+
 
 ## App Stack
 ```
