@@ -10,3 +10,5 @@ destroy_sonarqube:
 
 create_nexus:
 	@KUBECONFIG=$(KUBECONFIG) kubectl apply -f argocd-apps/argo-nexus-deploy.yml
+destroy_nexus:
+	argocd app delete nexus3-app -y
