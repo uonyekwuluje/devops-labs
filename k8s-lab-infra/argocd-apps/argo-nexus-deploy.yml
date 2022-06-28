@@ -1,0 +1,23 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nexus3-app
+  namespace: argo-cd
+spec:
+  destination:
+    name: in-cluster
+  project: default
+  source:
+    path: k8s-lab-infra/nexus/
+    repoURL: git@github.com:uonyekwuluje/devops-labs.git
+    targetRevision: main
+  syncPolicy:
+    automated: 
+       prune: true
+       selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - Validate=true
+    - ApplyOutOfSyncOnly=true
+    - Replace=true
