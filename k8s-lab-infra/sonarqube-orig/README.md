@@ -86,3 +86,5 @@ http://192.168.1.22:30036/
 
 ## Plugins
 * [Multi Branch Plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin)
+* [LDAP Integration](https://www.ecanarys.com/Blogs/ArticleID/395/LDAP-Integration-with-SonarQube)
+* [Bulk Provision](https://pwelagedara.com/setting-up-openldap-for-jenkins-jira-sonarqube-dokuwiki/)
