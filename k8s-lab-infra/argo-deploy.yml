@@ -20,3 +20,4 @@ spec:
     - CreateNamespace=true
     - Validate=true
     - ApplyOutOfSyncOnly=true
+    - Replace=true
