@@ -87,7 +87,7 @@ spec:
       - name: sonar-data
         emptyDir: {}
       - name: sonar-extensions
-         emptyDir: {}
+        emptyDir: {}
 
 
 ---
