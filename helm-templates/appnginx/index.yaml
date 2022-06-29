@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  appnginx:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-06-28T20:10:18.614712513-04:00"
+    description: Nginx Helm Chart
+    digest: 732649d1c2e530a7e78a5af1dacc6e370a07bcfc4a2d8acba55f66b4bc8c6ca1
+    name: appnginx
+    type: application
+    urls:
+    - http://dockerhelm.ucheonyekwuluje.com/appnginx/appnginx-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-06-28T20:10:18.614306905-04:00"

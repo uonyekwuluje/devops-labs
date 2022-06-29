@@ -1,0 +1,6 @@
+namespace: nginx
+replicaCount: 4
+image:
+  repository: "nginx"
+  pullPolicy: "IfNotPresent"
+  tag: "1.17.9"
