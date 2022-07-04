@@ -1,0 +1,167 @@
+# Login
+---------------------------------------
+helm repo add nexus http://admin:password@nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo
+>>
+"nexus" has been added to your repositories
+
+# List Helm Repositories
+--------------------------------------
+helm repo list
+>>
+NAME 	URL                                                                           
+nexus	http://admin:password@nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo
+
+# Helm Search
+---------------------------------------
+helm search hub
+helm search hub nginx
+
+helm search repo
+
+# Remove Repo
+---------------------------------------
+helm repo list
+>>
+NAME            	URL                                                                           
+nexus           	http://admin:password@nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo
+nexus3-priv-repo	http://admin:password@nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo
+
+helm repo remove nexus3-priv-repo
+>>
+"nexus3-priv-repo" has been removed from your repositories
+
+helm repo list
+>>
+NAME 	URL                                                                           
+nexus	http://admin:password@nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo
+
+# Create Helm
+--------------------------
+helm create helmnginx
+>>
+Creating helmnginx
+
+# Package
+--------------------------
+helm package ../$(basename "$PWD") --destination /tmp/
+>>
+Successfully packaged chart and saved it to: /tmp/helmnginx-0.0.1.tgz
+
+# Upload
+--------------------------
+curl -u admin:password http://nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo/ --upload-file /tmp/helmnginx-0.0.1.tgz -v
+
+# Install
+--------------------------
+helm search repo
+>>
+NAME             	CHART VERSION	APP VERSION	DESCRIPTION               
+nexus/helmnginx  	0.0.1        	0.0.1      	Nginx Helm Chart          
+nexus/studappcrud	0.1.7        	1.2.6      	Student App CRUD Operation
+
+# Search with Version
+-----------------------
+helm search repo helmnginx --versions
+helm search repo nexus/helmnginx --versions
+>>
+NAME           	CHART VERSION	APP VERSION	DESCRIPTION     
+nexus/helmnginx	0.0.1        	0.0.1      	Nginx Helm Chart
+
+==============================================================================================================
+export KUBECONFIG=~/.kube/dev-config
+export KUBECONFIG=~/.kube/dev-config helm repo update
+
+# Install or Upgrade
+-----------------------
+helm install appnginx nexus/helmnginx
+helm install appnginx nexus/helmnginx --version 0.0.1
+
+helm upgrade appnginx nexus/helmnginx
+helm upgrade appnginx nexus/helmnginx --version 0.0.1
+>>
+Release "appnginx" has been upgraded. Happy Helming!
+NAME: appnginx
+LAST DEPLOYED: Sun Jul  3 20:37:25 2022
+NAMESPACE: default
+STATUS: deployed
+REVISION: 3
+TEST SUITE: None
+
+helm upgrade --install --reuse-values --wait --timeout 600s appnginx nexus/helmnginx \
+--set replicaCount=1
+=> OR
+helm upgrade --install --reuse-values --wait --timeout 600s appnginx nexus/helmnginx \
+--set replicaCount=2 --set image.tag="1.23"
+=> OR
+# Upgrade Command Line Locally
+-------------------------------------
+helm upgrade --install --reuse-values --wait --timeout 600s studappcrud ../$(basename "$PWD") \
+-f dev-values.yaml --set image.tag=dev-4 
+
+# Check Status
+-------------------------------------
+helm list
+>>
+NAME       	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART            APP VERSION
+studappcrud	default  	14      	2022-07-03 09:02:04.230988062 -0400 EDT	deployed	studappcrud-0.1.71.2.6      
+
+helm status studappcrud
+>>
+NAME: studappcrud
+LAST DEPLOYED: Sun Jul  3 09:02:04 2022
+NAMESPACE: default
+STATUS: deployed
+REVISION: 14
+TEST SUITE: None
+
+
+# Show Values that can be overiden
+-------------------------------------
+helm search repo
+>>
+NAME             	CHART VERSION	APP VERSION	DESCRIPTION               
+nexus/helmnginx  	0.0.1        	0.0.1      	Nginx Helm Chart          
+nexus/studappcrud	0.1.7        	1.2.6      	Student App CRUD Operation
+
+helm show values nexus/helmnginx
+>>
+namespace: nginx
+replicaCount: 4
+image:
+  repository: "nginx"
+  pullPolicy: "IfNotPresent"
+  tag: "1.17.9"
+
+# Check Supplied Vlaues
+-----------------------------------
+helm get values appnginx
+>>
+USER-SUPPLIED VALUES:
+image:
+  tag: "1.23"
+replicaCount: 2
+
+# Rollback
+----------------------------------
+helm list
+>>
+NAME       	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART            APP VERSION
+appnginx   	default  	5       	2022-07-03 20:42:26.785049604 -0400 EDT	deployed	helmnginx-0.0.1  0.0.1      
+studappcrud	default  	14      	2022-07-03 09:02:04.230988062 -0400 EDT	deployed	studappcrud-0.1.71.2.6      
+
+helm rollback appnginx 3
+>>
+Rollback was a success! Happy Helming!
+
+
+# Uninstall
+----------------------------------
+helm uninstall appnginx
+>>
+release "appnginx" uninstalled
+
+helm list
+helm list --all
+>>
+NAME       	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART            APP VERSION
+studappcrud	default  	14      	2022-07-03 09:02:04.230988062 -0400 EDT	deployed	studappcrud-0.1.71.2.6      
