@@ -37,3 +37,8 @@ kubectl delete -f local-mysql-deployment.yml
 # Connect
 kubectl exec -it svc/mysql-svc -n mysql -- mysql -ppassword
 ```
+
+# Reference
+https://blog.vikki.in/kubernetes-stateful-set-with-local-storage-persistent-volume/
+https://medium.com/stakater/k8s-deployments-vs-statefulsets-vs-daemonsets-60582f0c62d4
+https://www.howtoforge.com/create-a-statefulset-in-kubernetes/
