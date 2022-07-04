@@ -4,22 +4,6 @@ kind: Namespace
 metadata:
   name: kafkaclster
 
-#---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: dnsutils
-#  namespace: kafkaclster
-#spec:
-#  containers:
-#  - name: dnsutils
-#    image: k8s.gcr.io/e2e-test-images/jessie-dnsutils:1.3
-#    command:
-#      - sleep
-#      - "3600"
-#    imagePullPolicy: IfNotPresent
-#  restartPolicy: Always
-
 
 ---
 apiVersion: apps/v1
