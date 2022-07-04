@@ -51,3 +51,10 @@ kafka-topics --describe --bootstrap-server localhost:9092 --topic restapp
 # Delete Topic
 kafka-topics --bootstrap-server localhost:9092 --delete --topic restapp
 ```
+
+
+# Reference Links
+https://akomljen.com/kubernetes-persistent-volumes-with-deployment-and-statefulset/
+https://hub.docker.com/r/confluentinc/cp-zookeeper/tags
+https://medium.com/accenture-the-dock/when-how-to-deploy-kafka-on-kubernetes-b18f5270db63
+https://dev.to/thegroo/running-kafka-on-kubernetes-for-local-development-2a54
