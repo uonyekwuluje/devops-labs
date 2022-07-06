@@ -1,6 +1,7 @@
 namespace: nginx
-replicaCount: 1
+replicaCount: 2
 image:
   repository: "nginx"
   pullPolicy: "IfNotPresent"
-  tag: "1.17.9"
+  tag: "1.23"
+#  tag: "1.17.9"
