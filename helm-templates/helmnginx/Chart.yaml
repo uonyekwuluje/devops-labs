@@ -1,6 +1,16 @@
 apiVersion: v2
+
 name: helmnginx
+
 description: Nginx Helm Chart
+
 type: application
-version: 0.0.1
+
+version: 0.0.2
+
 appVersion: "0.0.1"
+
+dependencies:
+- name: helmpostgres
+  version: 0.0.1
+  repository: "http://nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo/"

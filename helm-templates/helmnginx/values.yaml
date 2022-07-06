@@ -1,5 +1,5 @@
 namespace: nginx
-replicaCount: 4
+replicaCount: 1
 image:
   repository: "nginx"
   pullPolicy: "IfNotPresent"

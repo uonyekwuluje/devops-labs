@@ -1,0 +1,6 @@
+dependencies:
+- name: helmpostgres
+  repository: http://nexus3.ucheonyekwuluje.com:8081/repository/priv-helmrepo/
+  version: 0.0.1
+digest: sha256:78614ae4906d41d231d48ba3df2eb069470b26cd8a56c3f027571820587f17ba
+generated: "2022-07-06T11:31:10.329903134-04:00"
