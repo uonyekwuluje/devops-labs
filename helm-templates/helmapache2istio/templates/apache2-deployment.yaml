@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.applabel }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.applabel }}
+    spec:
+      initContainers:
+      - name: gen-index
+        image: busybox
+        command: 
+        - /bin/sh 
+        - -c
+        - |
+           sh -c "cat <<EOF> /usr/local/apache2/htdocs/index.html
+             <html>
+             <h1>Apache2 Server => [POD_NAME]</h1>
+             </html
+            "
+        volumeMounts:
+        - name: apache2-custom-index-file
+          mountPath: /usr/local/apache2/htdocs
+      containers:
+      - name: {{ .Values.applabel }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+               fieldPath: metadata.name
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", sed -i "s/POD_NAME/$POD_NAME/g" htdocs/index.html]
+        ports:
+        - name: http
+          containerPort: 80
+        volumeMounts:
+        - name: apache2-custom-index-file
+          mountPath: /usr/local/apache2/htdocs
+      volumes:
+      - name: apache2-custom-index-file
+        emptyDir: {}
+      - name: apache2-index-file
+        configMap:
+          name: {{ .Values.namespace }}-cm
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+     app: {{ .Values.applabel }}
+  name: {{ .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.applabel }}
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30036
+    protocol: TCP
+  type: NodePort

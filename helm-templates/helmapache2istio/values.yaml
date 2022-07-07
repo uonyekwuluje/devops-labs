@@ -1,0 +1,7 @@
+namespace: apacheistio
+replicaCount: 1
+image:
+  repository: "httpd"
+  pullPolicy: "IfNotPresent"
+  tag: "2.4.54"
+applabel: apache2
