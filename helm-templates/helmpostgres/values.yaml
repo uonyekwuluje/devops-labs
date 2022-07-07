@@ -1,0 +1,6 @@
+namespace: postgresdb
+replicaCount: 1
+image:
+  repository: "postgres"
+  pullPolicy: "IfNotPresent"
+  tag: "14.2"
