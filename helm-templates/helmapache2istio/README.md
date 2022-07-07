@@ -17,3 +17,7 @@ NodePort:                 http2  30459/TCP
 
 curl http://dev.apache2.com:30459
 ```
+
+## Reference Links
+https://istiobyexample.dev/ingress/
+https://www.istioworkshop.io/
