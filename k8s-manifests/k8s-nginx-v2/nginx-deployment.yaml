@@ -1,0 +1,77 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginxv1
+  annotations:
+     cattle.io/status: ''
+     field.cattle.io/projectId: "c-wm6k2:p-r546x"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: index-html-configmap
+  namespace: nginxv1
+data:
+  index.html: |
+    <html>
+    <h1>Welcome</h1>
+    </br>
+    <h1>Hi! This is a custom configmap Index file. NGINX</h1>
+    </html
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: nginxv1
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-index-file
+          mountPath: /usr/share/nginx/html/
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "10m"
+          limits:
+            memory: "128Mi"
+            cpu: "10m" 
+      volumes:
+      - name: nginx-index-file
+        configMap:
+          name: index-html-configmap
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+     app: nginx
+  name: nginx-service
+  namespace: nginxv1
+spec:
+  selector:
+    app: nginx
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30036
+    protocol: TCP
+  type: NodePort
