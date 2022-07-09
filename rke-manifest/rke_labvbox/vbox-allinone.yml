@@ -1,0 +1,20 @@
+nodes:
+- address: 192.168.1.104
+  port: "22"
+  internal_address: 192.168.1.104
+  role:
+  - controlplane
+  - etcd
+  - worker
+  hostname_override: "vbox-rke01"
+  user: rke
+ignore_docker_version: false
+ssh_key_path: ~/.ssh/id_rsa
+cluster_name: "vboxpoxlabs" 
+kubernetes_version: v1.22.10-rancher1-1
+authorization:
+    mode: rbac
+network:
+    plugin: canal
+dns:
+    provider: coredns
