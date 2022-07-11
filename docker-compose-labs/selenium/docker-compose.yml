@@ -1,0 +1,46 @@
+---
+version: "3.9"
+
+services:
+   selenium-hub:
+      image: selenium/hub:3.141.59
+      #container_name: selenium-hub
+      networks:
+      - selenumnet
+      ports:
+      - 4444:4444
+
+   chrome:
+      image: selenium/node-chrome:3.141.59
+      deploy:
+         replicas: $CHROME_REPLICAS 
+      #container_name: chrome
+      volumes:
+      - /dev/shm:/dev/shm
+      depends_on:
+      - selenium-hub
+      environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      networks:
+      - selenumnet
+
+   firefox:
+      image: selenium/node-firefox:3.141.59
+      deploy:
+         replicas: $FIREFOX_REPLICAS
+      #container_name: firefox
+      volumes:
+      - /dev/shm:/dev/shm
+      depends_on:
+      - selenium-hub
+      environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      networks:
+      - selenumnet
+
+
+networks:
+   selenumnet:
+      driver: bridge
