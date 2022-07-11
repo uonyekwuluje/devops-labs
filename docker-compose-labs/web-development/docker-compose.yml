@@ -1,0 +1,63 @@
+---
+version: '3.9'
+
+services:
+   webserver:
+     image: nginx:1.23.0
+     container_name: nginx
+     volumes:
+     - ./nginx/config/default.conf:/etc/nginx/conf.d/default.conf
+     - ./src:/usr/share/nginx/html
+     networks:
+     - lempnetwork
+     ports:
+     - 8000:80
+     - 8083:443
+
+   php-fpm:
+     container_name: php
+     build:
+       context: ./php
+       dockerfile: Dockerfile
+     volumes:
+     - ./src:/usr/share/nginx/html
+     networks:
+     - lempnetwork
+     ports:
+     - 9001:9000
+
+   phpmyadmin:
+     container_name: phpmyadmin
+     image: phpmyadmin/phpmyadmin
+     ports:
+     - 8080:80
+     restart: always
+     environment:
+        PMA_HOST: mysql-db
+     depends_on:
+     - mysql-db
+     networks:
+     - lempnetwork
+
+   mysql-db:
+     container_name: mysqldb
+     image: mysql:8.0.29
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: 'password'
+       MYSQL_DATABASE: 'demoprc_db'
+       MYSQL_USER: 'mysqluser'
+       MYSQL_PASSWORD: 'mysqlpassword'
+     volumes:
+     - mysqldata:/var/lib/mysql
+     networks:
+     - lempnetwork
+     ports:
+     - 9906:3306
+
+volumes:
+    mysqldata:
+
+networks:
+    lempnetwork:
+      driver: bridge
