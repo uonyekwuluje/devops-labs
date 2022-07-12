@@ -1,14 +1,12 @@
-# If you intended to deploy Kubernetes in an air-gapped environment,
-# please consult the documentation on how to configure custom RKE images.
 nodes:
-- address: 192.168.1.102
+- address: 192.168.1.43
   port: "22"
-  internal_address: 192.168.1.102
+  internal_address: 192.168.1.43
   role:
   - controlplane
   - etcd
   - worker
-  hostname_override: "work-infra-rancher"
+  hostname_override: "rancher"
   user: rke
   ssh_key_path: ~/.ssh/id_rsa
 services:
@@ -99,7 +97,7 @@ services:
     win_extra_binds: []
     win_extra_env: []
 network:
-  plugin: weave 
+  plugin: calico
   options: {}
   mtu: 0
   node_selector: {}
@@ -121,10 +119,10 @@ system_images:
   dnsmasq: rancher/mirrored-k8s-dns-dnsmasq-nanny:1.21.1
   kubedns_sidecar: rancher/mirrored-k8s-dns-sidecar:1.21.1
   kubedns_autoscaler: rancher/mirrored-cluster-proportional-autoscaler:1.8.5
-  coredns: rancher/mirrored-coredns-coredns:1.9.0
-  coredns_autoscaler: rancher/mirrored-cluster-proportional-autoscaler:1.8.5
+  coredns: rancher/mirrored-coredns-coredns:1.9.3
+  coredns_autoscaler: rancher/mirrored-cluster-proportional-autoscaler:1.8.1
   nodelocal: rancher/mirrored-k8s-dns-node-cache:1.21.1
-  kubernetes: rancher/hyperkube:v1.18.20-rancher1
+  kubernetes: rancher/hyperkube:v1.22.11-rancher1
   flannel: rancher/mirrored-coreos-flannel:v0.15.1
   flannel_cni: rancher/flannel-cni:v0.3.0-rancher6
   calico_node: rancher/mirrored-calico-node:v3.22.0
@@ -140,10 +138,10 @@ system_images:
   weave_node: weaveworks/weave-kube:2.8.1
   weave_cni: weaveworks/weave-npc:2.8.1
   pod_infra_container: rancher/mirrored-pause:3.6
-  ingress: rancher/nginx-ingress-controller:nginx-0.32.0-rancher1
-  ingress_backend: rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1
-  ingress_webhook: rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1
-  metrics_server: rancher/mirrored-metrics-server:v0.3.6   
+  ingress: rancher/nginx-ingress-controller:nginx-1.2.1-rancher1
+  ingress_backend: rancher/nginx-ingress-controller-defaultbackend:1.5-rancher1
+  ingress_webhook: rancher/mirrored-jettech-kube-webhook-certgen:v1.5.2
+  metrics_server: rancher/metrics-server:v0.4.1
   windows_pod_infra_container: rancher/mirrored-pause:3.6
   aci_cni_deploy_container: noiro/cnideploy:5.1.1.0.1ae238a
   aci_host_container: noiro/aci-containers-host:5.1.1.0.1ae238a
@@ -161,9 +159,12 @@ authorization:
   options: {}
 ignore_docker_version: null
 enable_cri_dockerd: null
-kubernetes_version: "v1.18.20-rancher1"
-private_registries: []
-cluster_name: "uchk8slabs"
+kubernetes_version: "v1.22.11-rancher1-1"
+private_registries: 
+- url: nexus3.ucheonyekwuluje.com:5000
+  user: admin
+  password: password
+cluster_name: "fed36rancher"
 cloud_provider:
   name: ""
 prefix_path: ""

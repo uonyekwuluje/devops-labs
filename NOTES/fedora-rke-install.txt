@@ -1,0 +1,497 @@
+
+
+# -------------------------------------#
+#    RKA MASTER and NODES              #  
+# -------------------------------------#
+
+# K8s Hosts File
+----------------------
+sudo bash -c 'cat <<EOF>> /etc/hosts
+192.168.1.40   work-infra-k8sm1
+192.168.1.41   work-infra-k8sw1
+192.168.1.42   work-infra-k8sw2
+192.168.1.102  work-infra-rancher
+EOF'
+
+# Disable Swap
+-------------------
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+sudo sed -i '/\/swap/ s/^\(.*\)$/#\1/g' /etc/fstab
+
+# Install Packages
+----------------------------------
+sudo dnf install -y tlp tlp-rdw sysstat vim telnet htop glances menulibre copyq unzip \
+p7zip jq gcc kernel-devel kernel-headers dnf-plugins-core python3-pip iproute-tc \
+rpm-ostree python3-dnf-plugin-versionlock wget chrony
+
+sudo systemctl enable --now chronyd
+
+sudo dnf groupinstall -y "Development Tools"
+sudo systemctl enable sshd && sudo systemctl start sshd
+sudo systemctl stop firewalld && sudo systemctl disable firewalld
+
+
+# Disable SELINUX
+------------------------
+sudo sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
+
+
+# Install Docker
+-----------------------
+sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf update -y
+
+sudo dnf makecache
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+
+sudo mkdir /etc/docker
+sudo bash -c 'cat <<EOF> /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true"
+  ]
+}
+EOF'
+
+
+# Enable Service
+------------------------------
+sudo systemctl enable docker && sudo systemctl start docker
+sudo systemctl status docker
+
+
+
+# Create RKE User
+---------------------------
+sudo useradd -g docker rke
+sudo echo -e "password\npassword" | sudo passwd rke
+sudo usermod -aG docker rke
+sudo usermod -aG docker fedora
+
+
+# Sudoers
+--------------------
+sudo bash -c 'cat <<EOF> /etc/sudoers.d/rke-sudo
+rke     ALL=(ALL:ALL)  NOPASSWD:ALL
+fedora  ALL=(ALL:ALL)  NOPASSWD:ALL
+EOF'
+
+
+# SSH Config
+------------------------------------
+sudo su - rke
+mkdir ~/.ssh
+chmod 700 ~/.ssh
+bash -c 'cat <<EOF> ~/.ssh/authorized_keys
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkHv5eeT4G+B+uNXgchKgLbiY3m2ZQYR1Oj9mq1pbEViUUXGFB/IdmdKTqpdgF5c6Znib3R8F6os6YUugZM+X9plG9T5KDVjWES/oSPoENENU1KJkntNhkNtJ+mA8Mv38r3BHCY97shbrtnRb4nZsW4ws+ClNGt5tMmMcMUJLah50sIMkeDGkIaCon+rs5GtwnEOIWQRhHSQWL2Npk54+BHMM6lZUP/05Xjfmf5/crcZNAM8q2LXEj4oeJ00U9sxkm5NqjhNCVXp2XPFavmMYlr/UlnXTT46d+kCj3LNIHJKM4Z62L/y9TZ/zdJ7DKjCMmKnhSQKZ6Q/EPPn8KXyEb uchekey
+EOF'
+chmod 600 ~/.ssh/authorized_keys
+
+
+# Update Sysctl
+---------------------------
+sudo bash -c 'cat<<EOF> /etc/sysctl.d/kubernetes.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF'
+
+
+# Module Update
+------------------------------------
+sudo modprobe overlay && sudo modprobe br_netfilter
+sudo reboot
+
+
+# Update Kernel/Grub
+---------------------------
+sudo vim /etc/default/grub
+>>
+GRUB_CMDLINE_LINUX="resume=UUID=c2192cda-7749-4864-b41c-e3d753b91792 rhgb quiet systemd.unified_cgroup_hierarchy=0"
+
+# Command Update
+---------------------------
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+sudo touch /etc/systemd/zram-generator.conf 
+sudo reboot
+
+
+=================================
+# Install RKE on Remote Machine #
+=================================
+# https://github.com/rancher/rke
+VERSION="v1.3.12"
+sudo wget -O /usr/local/bin/rke https://github.com/rancher/rke/releases/download/${VERSION}/rke_linux-amd64
+sudo chmod +x /usr/local/bin/rke
+rke --version
+
+
+# Create Config
+------------------------------
+rke config --name cluster.yml
+
+# Sample
+-------------------------------
+cat cluster.yml 
+# If you intended to deploy Kubernetes in an air-gapped environment,
+# please consult the documentation on how to configure custom RKE images.
+nodes:
+- address: 192.168.1.95
+  port: "22"
+  internal_address: 192.168.1.95
+  role:
+  - controlplane
+  - worker
+  - etcd
+  hostname_override: "lab-infra-k8sm1"
+  user: rke
+  ssh_key_path: ~/.ssh/id_rsa
+- address: 192.168.1.96
+  port: "22"
+  internal_address: 192.168.1.96
+  role:
+  - worker
+  hostname_override: "lab-infra-k8sw1"
+  user: rke
+  ssh_key_path: ~/.ssh/id_rsa
+- address: 192.168.1.97
+  port: "22"
+  internal_address: 192.168.1.97
+  role:
+  - worker
+  hostname_override: "lab-infra-k8sw2"
+  user: rke
+  ssh_key_path: ~/.ssh/id_rsa
+services:
+  etcd:
+    image: ""
+    extra_args: {}
+    extra_args_array: {}
+    extra_binds: []
+    extra_env: []
+    win_extra_args: {}
+    win_extra_args_array: {}
+    win_extra_binds: []
+    win_extra_env: []
+    external_urls: []
+    ca_cert: ""
+    cert: ""
+    key: ""
+    path: ""
+    uid: 0
+    gid: 0
+    snapshot: null
+    retention: ""
+    creation: ""
+    backup_config: null
+  kube-api:
+    image: ""
+    extra_args: {}
+    extra_args_array: {}
+    extra_binds: []
+    extra_env: []
+    win_extra_args: {}
+    win_extra_args_array: {}
+    win_extra_binds: []
+    win_extra_env: []
+    service_cluster_ip_range: 10.43.0.0/16
+    service_node_port_range: ""
+    pod_security_policy: false
+    always_pull_images: false
+    secrets_encryption_config: null
+    audit_log: null
+    admission_configuration: null
+    event_rate_limit: null
+  kube-controller:
+    image: ""
+    extra_args: {}
+    extra_args_array: {}
+    extra_binds: []
+    extra_env: []
+    win_extra_args: {}
+    win_extra_args_array: {}
+    win_extra_binds: []
+    win_extra_env: []
+    cluster_cidr: 10.42.0.0/16
+    service_cluster_ip_range: 10.43.0.0/16
+  scheduler:
+    image: ""
+    extra_args: {}
+    extra_args_array: {}
+    extra_binds: []
+    extra_env: []
+    win_extra_args: {}
+    win_extra_args_array: {}
+    win_extra_binds: []
+    win_extra_env: []
+  kubelet:
+    image: ""
+    extra_args: {}
+    extra_args_array: {}
+    extra_binds: []
+    extra_env: []
+    win_extra_args: {}
+    win_extra_args_array: {}
+    win_extra_binds: []
+    win_extra_env: []
+    cluster_domain: cluster.local
+    infra_container_image: ""
+    cluster_dns_server: 10.43.0.10
+    fail_swap_on: false
+    generate_serving_certificate: false
+  kubeproxy:
+    image: ""
+    extra_args: {}
+    extra_args_array: {}
+    extra_binds: []
+    extra_env: []
+    win_extra_args: {}
+    win_extra_args_array: {}
+    win_extra_binds: []
+    win_extra_env: []
+network:
+  plugin: weave 
+  options: {}
+  mtu: 0
+  node_selector: {}
+  update_strategy: null
+  tolerations: []
+authentication:
+  strategy: x509
+  sans: []
+  webhook: null
+addons: ""
+addons_include: []
+system_images:
+  etcd: rancher/mirrored-coreos-etcd:v3.5.3
+  alpine: rancher/rke-tools:v0.1.80
+  nginx_proxy: rancher/rke-tools:v0.1.80
+  cert_downloader: rancher/rke-tools:v0.1.80
+  kubernetes_services_sidecar: rancher/rke-tools:v0.1.80
+  kubedns: rancher/mirrored-k8s-dns-kube-dns:1.21.1
+  dnsmasq: rancher/mirrored-k8s-dns-dnsmasq-nanny:1.21.1
+  kubedns_sidecar: rancher/mirrored-k8s-dns-sidecar:1.21.1
+  kubedns_autoscaler: rancher/mirrored-cluster-proportional-autoscaler:1.8.5
+  coredns: rancher/mirrored-coredns-coredns:1.9.0
+  coredns_autoscaler: rancher/mirrored-cluster-proportional-autoscaler:1.8.5
+  nodelocal: rancher/mirrored-k8s-dns-node-cache:1.21.1
+  kubernetes: rancher/hyperkube:v1.18.20-rancher1
+  flannel: rancher/mirrored-coreos-flannel:v0.15.1
+  flannel_cni: rancher/flannel-cni:v0.3.0-rancher6
+  calico_node: rancher/mirrored-calico-node:v3.22.0
+  calico_cni: rancher/mirrored-calico-cni:v3.22.0
+  calico_controllers: rancher/mirrored-calico-kube-controllers:v3.22.0
+  calico_ctl: rancher/mirrored-calico-ctl:v3.22.0
+  calico_flexvol: rancher/mirrored-calico-pod2daemon-flexvol:v3.22.0
+  canal_node: rancher/mirrored-calico-node:v3.22.0
+  canal_cni: rancher/mirrored-calico-cni:v3.22.0
+  canal_controllers: rancher/mirrored-calico-kube-controllers:v3.22.0
+  canal_flannel: rancher/mirrored-flannelcni-flannel:v0.17.0
+  canal_flexvol: rancher/mirrored-calico-pod2daemon-flexvol:v3.22.0
+  weave_node: weaveworks/weave-kube:2.8.1
+  weave_cni: weaveworks/weave-npc:2.8.1
+  pod_infra_container: rancher/mirrored-pause:3.6
+  ingress: rancher/nginx-ingress-controller:nginx-0.32.0-rancher1
+  ingress_backend: rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1
+  ingress_webhook: rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1
+  metrics_server: rancher/mirrored-metrics-server:v0.3.6   
+  windows_pod_infra_container: rancher/mirrored-pause:3.6
+  aci_cni_deploy_container: noiro/cnideploy:5.1.1.0.1ae238a
+  aci_host_container: noiro/aci-containers-host:5.1.1.0.1ae238a
+  aci_opflex_container: noiro/opflex:5.1.1.0.1ae238a
+  aci_mcast_container: noiro/opflex:5.1.1.0.1ae238a
+  aci_ovs_container: noiro/openvswitch:5.1.1.0.1ae238a
+  aci_controller_container: noiro/aci-containers-controller:5.1.1.0.1ae238a
+  aci_gbp_server_container: noiro/gbp-server:5.1.1.0.1ae238a
+  aci_opflex_server_container: noiro/opflex-server:5.1.1.0.1ae238a
+ssh_key_path: ~/.ssh/id_rsa
+ssh_cert_path: ""
+ssh_agent_auth: false
+authorization:
+  mode: rbac
+  options: {}
+ignore_docker_version: null
+enable_cri_dockerd: null
+kubernetes_version: "v1.18.20-rancher1"
+private_registries: []
+cluster_name: "uchk8slabs"
+cloud_provider:
+  name: ""
+prefix_path: ""
+win_prefix_path: ""
+addon_job_timeout: 90
+bastion_host:
+  address: ""
+  port: ""
+  user: ""
+  ssh_key: ""
+  ssh_key_path: ""
+  ssh_cert: ""
+  ssh_cert_path: ""
+  ignore_proxy_env_vars: false
+monitoring:
+  provider: ""
+  options: {}
+  node_selector: {}
+  update_strategy: null
+  replicas: null
+  tolerations: []
+  metrics_server_priority_class_name: ""
+restore:
+  restore: false
+  snapshot_name: ""
+rotate_encryption_key: false
+dns: null
+
+
+# Bring Up Cluster
+-----------------------------------------
+rke up
+
+
+kubectl --kubeconfig kube_config_cluster.yml get nodes
+kubectl --kubeconfig kube_config_cluster.yml get pods --all-namespaces
+
+
+
+
+
+
+
+
+
+
+# -------------------------------------#
+#        RANCHER INSTALLATION          #  
+# -------------------------------------#
+
+# Install Kubectl
+---------------------
+#-> https://github.com/kubernetes/kubernetes
+KUBECTL_VERSION="1.24.1"
+curl -sLO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+sudo mv kubectl /bin/kubectl
+sudo chmod a+x /bin/kubectl
+kubectl version -o json
+
+
+# Install Helm 
+# https://github.com/helm/helm/releases
+------------------------------------
+export HELM_VERSION="v3.9.0"
+export EXTRACT_FOLDER="/opt/helm"
+sudo rm -rf ${EXTRACT_FOLDER}
+sudo mkdir ${EXTRACT_FOLDER}
+wget https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz
+sudo tar -zxvf helm-${HELM_VERSION}-linux-amd64.tar.gz -C ${EXTRACT_FOLDER} --strip-components=1
+sudo rm -Rf helm-${HELM_VERSION}-linux-amd64.tar.gz
+sudo mv ${EXTRACT_FOLDER}/helm /bin
+helm version
+
+
+# Add the Helm Chart Repository
+---------------------------------
+helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+helm repo update
+
+# Create a Namespace for Rancher
+----------------------------------
+kubectl create namespace cattle-system
+
+# Choose your SSL Configuration
+-----------------------------------
+kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.crds.yaml
+
+# Create the namespace for cert-manager
+kubectl create namespace cert-manager
+
+# Add the Jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+
+# https://github.com/jetstack/cert-manager/releases/tag/v1.1.1
+# Install the cert-manager Helm chart
+
+-> helm search repo jetstack/cert-manager --versions   #ORIG=> v1.2.0   v1.8.0
+
+helm install cert-manager jetstack/cert-manager \
+--namespace cert-manager --version v1.8.2
+
+helm upgrade cert-manager jetstack/cert-manager \
+--namespace cert-manager --version v1.5.0
+
+
+# Verify
+kubectl get pods --namespace cert-manager
+>>
+NAME                                       READY   STATUS    RESTARTS   AGE
+cert-manager-6d6bb4f487-tfcrv              1/1     Running   0          10m
+cert-manager-cainjector-7d55bf8f78-jx5s6   1/1     Running   0          10m
+cert-manager-webhook-577f77586f-v96c4      1/1     Running   0          10m
+
+
+# Install Rancher
+---------------------------
+helm search repo rancher-latest/rancher --versions
+
+helm install rancher rancher-latest/rancher \
+--namespace cattle-system \
+--set replicas=1 \
+--set bootstrapPassword=Passw0rd1 \
+--set hostname=rancher.ucheonyekwuluje.com  \
+--version 2.6.6
+
+helm upgrade rancher rancher-latest/rancher \
+--namespace cattle-system \
+--set replicas=1 \
+--set bootstrapPassword=Passw0rd1 \
+--set hostname=wrkrancher.ucheonyekwuluje.com  \
+--version 2.4.17
+
+
+# Upgrade Rancher
+---------------------------
+helm upgrade rancher rancher-latest/rancher \
+--namespace cattle-system \
+--set replicas=1 \
+--set bootstrapPassword=Passw0rd1 \
+--set hostname=wrkrancher.ucheonyekwuluje.com \
+--version 2.6.5
+
+helm install rancher rancher-latest/rancher \
+--namespace cattle-system \
+--set replicas=1 \
+--set bootstrapPassword=Passw0rd1 \
+--set hostname=wrk-rancher.ucheonyekwuluje.com \
+--version 2.5.9
+
+# Delete Rancher
+---------------------------
+helm delete rancher rancher-latest/rancher --namespace cattle-system \
+--set hostname=wrk-rancher.ucheonyekwuluje.com 
+
+# Check Rollout
+---------------------
+kubectl -n cattle-system rollout status deploy/rancher
+>>
+
+kubectl -n cattle-system get deploy rancher
+>>
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+rancher   3/3     3            3           2m46s
+
+Test UI
+--------------------------------
+https://rancher.ucheonyekwuluje.com
+username: admin
+password: Passw0rd1
+
+
+
+
