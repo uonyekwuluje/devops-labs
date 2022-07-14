@@ -1,30 +1,30 @@
 # If you intended to deploy Kubernetes in an air-gapped environment,
 # please consult the documentation on how to configure custom RKE images.
 nodes:
-- address: 192.168.1.40
+- address: 192.168.1.20
   port: "22"
-  internal_address: 192.168.1.40
+  internal_address: 192.168.1.20
   role:
   - controlplane
   - etcd
-  hostname_override: "work-k8s-master"
-  user: rke
+  hostname_override: "ub22-k8s-master"
+  user: ubuntu
   ssh_key_path: ~/.ssh/id_rsa
-- address: 192.168.1.41
+- address: 192.168.1.21
   port: "22"
-  internal_address: 192.168.1.41
+  internal_address: 192.168.1.21
   role:
   - worker
-  hostname_override: "work-k8s-node01"
-  user: rke
+  hostname_override: "ub22-k8s-node01"
+  user: ubuntu
   ssh_key_path: ~/.ssh/id_rsa
-- address: 192.168.1.42
+- address: 192.168.1.22
   port: "22"
-  internal_address: 192.168.1.42
+  internal_address: 192.168.1.22
   role:
   - worker
-  hostname_override: "work-k8s-node02"
-  user: rke
+  hostname_override: "ub22-k8s-node02"
+  user: ubuntu
   ssh_key_path: ~/.ssh/id_rsa
 services:
   etcd:
@@ -181,7 +181,7 @@ private_registries:
 - url: nexus3.ucheonyekwuluje.com:5000
   user: admin
   password: password
-cluster_name: "fed36k8slabs"
+cluster_name: "ub18k8slabs"
 cloud_provider:
   name: ""
 prefix_path: ""

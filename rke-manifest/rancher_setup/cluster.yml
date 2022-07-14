@@ -1,13 +1,13 @@
 nodes:
-- address: 192.168.1.43
+- address: 192.168.1.23
   port: "22"
-  internal_address: 192.168.1.43
+  internal_address: 192.168.1.23
   role:
   - controlplane
   - etcd
   - worker
-  hostname_override: "rancher"
-  user: rke
+  hostname_override: "k8s-rancher"
+  user: ubuntu
   ssh_key_path: ~/.ssh/id_rsa
 services:
   etcd:
@@ -164,7 +164,7 @@ private_registries:
 - url: nexus3.ucheonyekwuluje.com:5000
   user: admin
   password: password
-cluster_name: "fed36rancher"
+cluster_name: "rancher"
 cloud_provider:
   name: ""
 prefix_path: ""
