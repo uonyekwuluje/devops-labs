@@ -1,0 +1,18 @@
+namespace: selenium
+rancherClusterId: "c-m-dgcc9jdd"
+rancherProjectId: "p-88ptj"
+
+image:
+    seleniumHub:
+        repository: "selenium/hub"
+        tag: "3.141.59"
+        replicas: 1
+    seleniumFirefoxNode:
+        repository: "selenium/node-firefox"
+        tag: "3.141.59"
+        replicas: 1
+    seleniumChromeNode:
+        repository: "selenium/node-chrome"
+        tag: "3.141.59"
+        replicas: 1
+    pullPolicy: "IfNotPresent"

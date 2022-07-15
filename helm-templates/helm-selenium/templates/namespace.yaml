@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+  annotations:
+    cattle.io/status: ''
+    field.cattle.io/projectId: "{{ .Values.rancherClusterId }}:{{ .Values.rancherProjectId }}"
