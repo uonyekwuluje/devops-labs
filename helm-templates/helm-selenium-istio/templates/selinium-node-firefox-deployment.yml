@@ -35,6 +35,29 @@ spec:
         - name: HUB_PORT
           value: "4444"
         - name: NODE_MAX_INSTANCES
-          value: "{{ .Values.image.seleniumChromeNode.max_instances }}"
+          value: "{{ .Values.image.seleniumFirefoxNode.max_instances }}"
         - name: NODE_MAX_SESSION
-          value: "{{ .Values.image.seleniumChromeNode.max_sessions }}"
+          value: "{{ .Values.image.seleniumFirefoxNode.max_sessions }}"
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-node-firefox
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: selenium-node-firefox
+spec:
+  selector:
+    app: selenium-node-firefox
+    browser: firefox
+  ports:
+    - name: nodeport
+      protocol: TCP
+      port: 5555
+      targetPort: 5555
+    - name: node-port-grid
+      protocol: TCP
+      port: 4444
+      targetPort: 4444

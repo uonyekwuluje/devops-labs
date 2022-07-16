@@ -1,4 +1,5 @@
 namespace: selenium
+
 rancherClusterId: "c-m-dgcc9jdd"
 rancherProjectId: "p-88ptj"
 
@@ -11,12 +12,26 @@ image:
         repository: "selenium/node-firefox"
         tag: "3.141.59"
         replicas: 1
-        max_instances: "1"
-        max_sessions: "1"
+        max_instances: "2"
+        max_sessions: "2"
     seleniumChromeNode:
         repository: "selenium/node-chrome"
         tag: "3.141.59"
         replicas: 1
-        max_instances: "1"
-        max_sessions: "1"
+        max_instances: "5"
+        max_sessions: "5"
+    seleniumOperaNode:
+        repository: "selenium/node-opera"
+        tag: "3.141.59"
+        replicas: 1
+        max_instances: "2"
+        max_sessions: "2"
     pullPolicy: "IfNotPresent"
+
+gatewayHub:
+    gwhubhosts:
+    - "selenium-hub.ucheonyekwuluje.com"
+
+gatewayNode:
+    gwNodehosts:
+    - "selenium-chrome-node.ucheonyekwuluje.com"

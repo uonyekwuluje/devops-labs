@@ -1,0 +1,43 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  annotations: {}
+  name: selenium-hub-gateway
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: selenium-hub-gateway
+spec:
+  selector:
+      istio: ingressgateway
+  servers:
+  - hosts:
+    {{- range $value := .Values.gatewayHub.gwhubhosts }} 
+    - "{{ $value }}"
+    {{- end }}
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+   annotations: {}
+   name: selenium-hub-virtualservice
+   namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+  {{- range $value := .Values.gatewayHub.gwhubhosts }}
+  - "{{ $value }}"
+  {{- end }}
+  gateways:
+  - selenium-hub-gateway
+  http:
+  - route:
+    - destination:
+         host: selenium-hub-service
+         port:
+           number: 4444
+      weight: 70

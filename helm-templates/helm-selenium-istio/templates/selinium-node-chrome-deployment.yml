@@ -25,7 +25,10 @@ spec:
         image: "{{ .Values.image.seleniumChromeNode.repository }}:{{ .Values.image.seleniumChromeNode.tag  }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         ports:
-        - containerPort: 5901
+        - containerPort: 4444
+          protocol: TCP
+        - containerPort: 5555
+          protocol: TCP
         volumeMounts:
         - mountPath: /dev/shm
           name: dshm
@@ -38,3 +41,26 @@ spec:
           value: "{{ .Values.image.seleniumChromeNode.max_instances }}"
         - name: NODE_MAX_SESSION
           value: "{{ .Values.image.seleniumChromeNode.max_sessions }}"
+          
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-node-chrome
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: selenium-node-chrome
+spec:
+  selector:
+    app: selenium-node-chrome
+    browser: chrome
+  ports:
+    - name: nodeport
+      protocol: TCP
+      port: 5555
+      targetPort: 5555
+    - name: node-port-grid
+      protocol: TCP
+      port: 4444
+      targetPort: 4444
