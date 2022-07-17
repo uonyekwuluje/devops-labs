@@ -9,19 +9,19 @@ image:
         tag: "3.141.59"
         replicas: 1
     seleniumFirefoxNode:
-        repository: "selenium/node-firefox"
+        repository: "selenium/node-firefox-debug"
         tag: "3.141.59"
         replicas: 1
         max_instances: "2"
         max_sessions: "2"
     seleniumChromeNode:
-        repository: "selenium/node-chrome"
+        repository: "selenium/node-chrome-debug"
         tag: "3.141.59"
         replicas: 1
-        max_instances: "5"
-        max_sessions: "5"
+        max_instances: "2"
+        max_sessions: "2"
     seleniumOperaNode:
-        repository: "selenium/node-opera"
+        repository: "selenium/node-opera-debug"
         tag: "3.141.59"
         replicas: 1
         max_instances: "2"
