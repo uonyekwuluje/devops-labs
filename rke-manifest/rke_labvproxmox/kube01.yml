@@ -1,0 +1,25 @@
+nodes:
+- address: 192.168.1.141
+  port: "22"
+  internal_address: 192.168.1.141
+  role:
+  - controlplane
+  - etcd
+  - worker
+  hostname_override: "dev-infra-kube"
+  user: fedora
+ignore_docker_version: false
+ssh_key_path: ~/.ssh/id_rsa
+private_registries:
+- url: nexus3.ucheonyekwuluje.com:5000
+  user: admin
+  password: password
+cluster_name: "devinfrak8s"
+kubernetes_version: v1.22.10-rancher1-1
+authorization:
+    mode: rbac
+network:
+    plugin: canal
+dns:
+    provider: coredns
+addon_job_timeout: 90
