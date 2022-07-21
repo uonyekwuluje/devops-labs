@@ -2,6 +2,7 @@ variable "AWS_REGION" {
     default = "us-east-1"
 }
 
+variable "ssh_keypair" {}
 variable "project_suffix" {}
 variable "network_name" {}
 variable "environment" {}

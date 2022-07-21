@@ -8,3 +8,4 @@ variable "aws_type" {}
 variable "node_count" {}
 variable "root_disk_size" {}
 variable "security_group" {}
+variable "ssh_keypair" {}

@@ -17,3 +17,5 @@ allpurpose_vm_size = {
   vm_8_by_32  = "m5.2xlarge"
   vm_2_by_16  = "i3en.large"
 }
+
+ssh_keypair = "ucheaws-dev-key"

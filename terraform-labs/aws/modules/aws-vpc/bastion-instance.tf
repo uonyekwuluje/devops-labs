@@ -38,7 +38,7 @@ resource "aws_instance" "bastion_instance" {
   instance_type          = var.aws_bastion_type
   subnet_id              = aws_subnet.devlab-vpc-public-1.id
   vpc_security_group_ids = [aws_security_group.sg_22.id]
-  key_name               = "dev-key" 
+  key_name               = var.ssh_keypair
 
   tags = {
     Environment = var.environment

@@ -4,7 +4,7 @@ resource "aws_instance" "linux_instance" {
   instance_type          = var.aws_type
   subnet_id              = var.private_subnet_1_id
   vpc_security_group_ids = [var.security_group]
-  key_name               = "deploy-key" 
+  key_name               = var.ssh_keypair
 
   root_block_device {
     volume_type  =  "gp2"
